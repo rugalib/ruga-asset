@@ -51,7 +51,9 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
     {
         $aLoadedAssets = [];
         
-        $assets=array_reverse($this->config);
+        
+        // Handle the rugalib assets
+        $assets = array_reverse($this->config);
         
         foreach ($assets as $assetname => $asset) {
             $aLoadedAssets[] = $assetname;
@@ -72,6 +74,103 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
             }
         }
         
+        // Handle the components/* assets (from packagist.org)
+        $components = \Composer\InstalledVersions::getInstalledPackagesByType('component');
+        foreach ($components as $componentName) {
+            $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
+            
+            $componentJsonFile = "{$componentPath}/component.json";
+            if (file_exists($componentJsonFile)) {
+                try {
+                    $componentComponentConfig = \Laminas\Json\Decoder::decode(
+                        file_get_contents($componentJsonFile),
+                        \Laminas\Json\Json::TYPE_ARRAY
+                    );
+                } catch (\ErrorException $e) {
+                    $componentComponentConfig = [];
+                }
+
+                $aLoadedAssets[] = $componentName;
+                
+                foreach ($componentComponentConfig['scripts'] ?? [] as $item) {
+                    ($this->inlineScript)()->prependFile(
+                        "ruga/vendorasset/{$componentName}/{$item}"
+                    );
+                }
+                
+                foreach ($componentComponentConfig['styles'] ?? [] as $item) {
+                    ($this->headLink)()->prependStylesheet(
+                        "ruga/vendorasset/{$componentName}/{$item}"
+                    );
+                }
+            }
+        }
+    
+        // Handle the npm-asset/* assets (from asset-packagist.org)
+        $components = \Composer\InstalledVersions::getInstalledPackagesByType('npm-asset');
+        foreach ($components as $componentName) {
+            $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
+        
+            $componentJsonFile = "{$componentPath}/package.json";
+            if (file_exists($componentJsonFile)) {
+                try {
+                    $componentComponentConfig = \Laminas\Json\Decoder::decode(
+                        file_get_contents($componentJsonFile),
+                        \Laminas\Json\Json::TYPE_ARRAY
+                    );
+                } catch (\ErrorException $e) {
+                    $componentComponentConfig = [];
+                }
+            
+                $aLoadedAssets[] = $componentName;
+            
+                foreach ((array)$componentComponentConfig['main'] ?? [] as $item) {
+                    ($this->inlineScript)()->prependFile(
+                        "ruga/vendorasset/{$componentName}/{$item}"
+                    );
+                }
+            
+                foreach ((array)$componentComponentConfig['style'] ?? [] as $item) {
+                    ($this->headLink)()->prependStylesheet(
+                        "ruga/vendorasset/{$componentName}/{$item}"
+                    );
+                }
+            }
+        }
+    
+        // Handle the npm-asset/* assets (from asset-packagist.org)
+        $components = \Composer\InstalledVersions::getInstalledPackagesByType('bower-asset');
+        foreach ($components as $componentName) {
+            $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
+        
+            $componentJsonFile = "{$componentPath}/package.json";
+            if (file_exists($componentJsonFile)) {
+                try {
+                    $componentComponentConfig = \Laminas\Json\Decoder::decode(
+                        file_get_contents($componentJsonFile),
+                        \Laminas\Json\Json::TYPE_ARRAY
+                    );
+                } catch (\ErrorException $e) {
+                    $componentComponentConfig = [];
+                }
+            
+                $aLoadedAssets[] = $componentName;
+            
+                foreach ((array)$componentComponentConfig['main'] ?? [] as $item) {
+                    ($this->inlineScript)()->prependFile(
+                        "ruga/vendorasset/{$componentName}/{$item}"
+                    );
+                }
+            
+                foreach ((array)$componentComponentConfig['style'] ?? [] as $item) {
+                    ($this->headLink)()->prependStylesheet(
+                        "ruga/vendorasset/{$componentName}/{$item}"
+                    );
+                }
+            }
+        }
+    
+    
         return '<!-- ' . var_export($aLoadedAssets, true) . ' -->';
     }
     
