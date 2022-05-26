@@ -138,7 +138,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
             }
         }
     
-        // Handle the npm-asset/* assets (from asset-packagist.org)
+        // Handle the bower-asset/* assets (from asset-packagist.org)
         $components = \Composer\InstalledVersions::getInstalledPackagesByType('bower-asset');
         foreach ($components as $componentName) {
             $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
