@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ruga\Asset\Helper;
 
+use Laminas\Json\Decoder;
+use Laminas\Json\Json;
 use Laminas\View\Helper\HeadLink;
 use Laminas\View\Helper\InlineScript;
 
@@ -41,6 +43,15 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
     
     
     
+    private function checkForMin(string $file, string $installPath): string
+    {
+        $minFile=str_replace(['.js', '.css', '.map'], ['.min.js', '.min.css', '.min.map'], $file);
+        if(file_exists("{$installPath}/{$minFile}")) return $minFile;
+        return $file;
+    }
+    
+    
+    
     /**
      * The __invoke method is called when a script tries to call an object as a function.
      *
@@ -49,129 +60,180 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
      */
     public function __invoke()
     {
-        $aLoadedAssets = [];
+        $aPackageList = [];
         
-        
-        // Handle the rugalib assets
+        // Add the rugalib assets
         $assets = array_reverse($this->config);
-        
         foreach ($assets as $assetname => $asset) {
-            $aLoadedAssets[] = $assetname;
-            if (isset($asset['scripts']) && is_array($asset['scripts'])) {
-                foreach (array_reverse($asset['scripts']) as $item) {
-                    ($this->inlineScript)()->prependFile(
-                        "ruga/vendorasset/{$assetname}/{$item}"
-                    );
-                }
-            }
-            
-            if (isset($asset['stylesheets']) && is_array($asset['stylesheets'])) {
-                foreach (array_reverse($asset['stylesheets']) as $item) {
-                    ($this->headLink)()->prependStylesheet(
-                        "ruga/vendorasset/{$assetname}/{$item}"
-                    );
-                }
-            }
+            $aPackageList[$assetname] = [];
         }
         
-        // Handle the components/* assets (from packagist.org)
-        $components = \Composer\InstalledVersions::getInstalledPackagesByType('component');
-        foreach ($components as $componentName) {
-            $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
+        // Add all the composer packages
+        foreach (\Composer\InstalledVersions::getInstalledPackages() as $assetname) {
+            $aPackageList[$assetname] = [];
+        }
+        
+        $aPackageLoadList=[];
+        foreach ($aPackageList as $packageName => $packageConf) {
+            if(!preg_match('#(rugalib/ruga-asset-|rugalib/asset-|components/|npm-asset/|bower-asset/)#s', $packageName)) continue;
+            $installPath = \Composer\InstalledVersions::getInstallPath($packageName);
+            $packageConf=['installPath' => $installPath];
             
-            $componentJsonFile = "{$componentPath}/component.json";
-            if (file_exists($componentJsonFile)) {
+            if(array_key_exists($packageName, $this->config)) {
+                $config = $this->config[$packageName];
+                $packageConf['ruga-asset'] = $config;
+            }
+            
+            if(file_exists($composerFile="{$installPath}/composer.json")) {
                 try {
-                    $componentComponentConfig = \Laminas\Json\Decoder::decode(
-                        file_get_contents($componentJsonFile),
-                        \Laminas\Json\Json::TYPE_ARRAY
-                    );
+                    $composerJson = Decoder::decode(file_get_contents($composerFile), Json::TYPE_ARRAY);
                 } catch (\ErrorException $e) {
-                    $componentComponentConfig = [];
-                }
-
-                $aLoadedAssets[] = $componentName;
-                
-                foreach ($componentComponentConfig['scripts'] ?? [] as $item) {
-                    ($this->inlineScript)()->prependFile(
-                        "ruga/vendorasset/{$componentName}/{$item}"
-                    );
+                    $composerJson = [];
                 }
                 
-                foreach ($componentComponentConfig['styles'] ?? [] as $item) {
-                    ($this->headLink)()->prependStylesheet(
-                        "ruga/vendorasset/{$componentName}/{$item}"
-                    );
+                foreach(($composerJson['require'] ?? []) as $name => $version) {
+                    if(array_key_exists($name, $aPackageList)) {
+                        $packageConf['require'][]=$name;
+                        if(!array_key_exists($name, $aPackageLoadList)) {
+                            $aPackageLoadList[$name] = [];
+                        }
+                    }
                 }
+                
+                $packageConf['composer.json'] = $composerJson;
             }
-        }
-    
-        // Handle the npm-asset/* assets (from asset-packagist.org)
-        $components = \Composer\InstalledVersions::getInstalledPackagesByType('npm-asset');
-        foreach ($components as $componentName) {
-            $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
-        
-            $componentJsonFile = "{$componentPath}/package.json";
-            if (file_exists($componentJsonFile)) {
+            
+            if(file_exists($componentFile="{$installPath}/component.json")) {
                 try {
-                    $componentComponentConfig = \Laminas\Json\Decoder::decode(
-                        file_get_contents($componentJsonFile),
-                        \Laminas\Json\Json::TYPE_ARRAY
-                    );
+                    $componentJson = Decoder::decode(file_get_contents($componentFile), Json::TYPE_ARRAY);
                 } catch (\ErrorException $e) {
-                    $componentComponentConfig = [];
+                    $componentJson = [];
                 }
-            
-                $aLoadedAssets[] = $componentName;
-            
-                foreach ((array)$componentComponentConfig['main'] ?? [] as $item) {
-                    ($this->inlineScript)()->prependFile(
-                        "ruga/vendorasset/{$componentName}/{$item}"
-                    );
-                }
-            
-                foreach ((array)$componentComponentConfig['style'] ?? [] as $item) {
-                    ($this->headLink)()->prependStylesheet(
-                        "ruga/vendorasset/{$componentName}/{$item}"
-                    );
-                }
-            }
-        }
     
-        // Handle the bower-asset/* assets (from asset-packagist.org)
-        $components = \Composer\InstalledVersions::getInstalledPackagesByType('bower-asset');
-        foreach ($components as $componentName) {
-            $componentPath = \Composer\InstalledVersions::getInstallPath($componentName);
-        
-            $componentJsonFile = "{$componentPath}/package.json";
-            if (file_exists($componentJsonFile)) {
+                foreach(($componentJson['dependencies'] ?? []) as $name => $version) {
+                    if(array_key_exists($name, $aPackageList)) {
+                        $packageConf['require'][]=$name;
+                        if(!array_key_exists($name, $aPackageLoadList)) {
+                            $aPackageLoadList[$name] = [];
+                        }
+                    }
+                }
+    
+                $packageConf['component.json'] = $componentJson;
+            }
+            
+            if(file_exists($packageFile="{$installPath}/package.json")) {
                 try {
-                    $componentComponentConfig = \Laminas\Json\Decoder::decode(
-                        file_get_contents($componentJsonFile),
-                        \Laminas\Json\Json::TYPE_ARRAY
-                    );
+                    $packageJson = Decoder::decode(file_get_contents($packageFile), Json::TYPE_ARRAY);
                 } catch (\ErrorException $e) {
-                    $componentComponentConfig = [];
+                    $packageJson = [];
                 }
+    
+                $packageConf['package.json'] = $packageJson;
+            }
             
-                $aLoadedAssets[] = $componentName;
-            
-                foreach ((array)$componentComponentConfig['main'] ?? [] as $item) {
-                    ($this->inlineScript)()->prependFile(
-                        "ruga/vendorasset/{$componentName}/{$item}"
-                    );
+            if(file_exists($bowerFile="{$installPath}/bower.json")) {
+                try {
+                    $bowerJson = Decoder::decode(file_get_contents($bowerFile), Json::TYPE_ARRAY);
+                } catch (\ErrorException $e) {
+                    $bowerJson = [];
                 }
+    
+                $packageConf['bower.json'] = $bowerJson;
+            }
+    
+    
+//            if(!in_array($packageName, $aPackageLoadList) && !empty($packageConf)) {
+                $aPackageLoadList[$packageName] = $packageConf;
+//            }
+    
+            $aPackageList[$packageName] = $packageConf;
+        }
+        
+    
+        
+        
+        
+        
+        
+        
+        foreach (array_reverse($aPackageLoadList) as $packageName => $packageConf) {
+            $scripts=[];
+            $stylesheets=[];
             
-                foreach ((array)$componentComponentConfig['style'] ?? [] as $item) {
-                    ($this->headLink)()->prependStylesheet(
-                        "ruga/vendorasset/{$componentName}/{$item}"
-                    );
+            if(array_key_exists('ruga-asset', $packageConf)) {
+                $scripts=$packageConf['ruga-asset']['scripts'];
+                $stylesheets=$packageConf['ruga-asset']['stylesheets'];
+            }
+            
+            if(array_key_exists('composer.json', $packageConf)) {
+                foreach ((($packageConf['composer.json']['extra'] ?? [])['component'] ?? [])['scripts'] ?? [] as $item ) {
+                    $item=$this->checkForMin($item, $packageConf['installPath']);
+                    if(!empty($item) && !in_array($item, $scripts)) $scripts[]=$item;
                 }
+                foreach ((($packageConf['composer.json']['extra'] ?? [])['component'] ?? [])['styles'] ?? [] as $item ) {
+                    $item=$this->checkForMin($item, $packageConf['installPath']);
+                    if(!empty($item) && !in_array($item, $stylesheets)) $stylesheets[]=$item;
+                }
+            }
+    
+            if(array_key_exists('component.json', $packageConf)) {
+                $main=(array)$packageConf['component.json']['main'] ?? [];
+                foreach ($main as $item) {
+                    $item=$this->checkForMin($item, $packageConf['installPath']);
+                    if(!empty($item) && !in_array($item, $scripts)) $scripts[]=$item;
+                }
+                foreach ($packageConf['component.json']['styles'] ?? [] as $item) {
+                    $item=$this->checkForMin($item, $packageConf['installPath']);
+                    if(!empty($item) && !in_array($item, $stylesheets)) $stylesheets[]=$item;
+                }
+            }
+    
+            if(array_key_exists('package.json', $packageConf)) {
+                $item=$packageConf['package.json']['main'] ?? '';
+                $item=$this->checkForMin($item, $packageConf['installPath']);
+                if(!empty($item) && !in_array($item, $scripts)) $scripts[]=$item;
+    
+                $item=$packageConf['package.json']['style'] ?? '';
+                $item=$this->checkForMin($item, $packageConf['installPath']);
+                if(!empty($item) && !in_array($item, $stylesheets)) $stylesheets[]=$item;
+            }
+    
+            if(array_key_exists('bower.json', $packageConf)) {
+                $main=(array)$packageConf['bower.json']['main'] ?? [];
+                foreach ($main as $item) {
+                    $item=$this->checkForMin($item, $packageConf['installPath']);
+                    if(preg_match('#\.js$#si', $item)) {
+                        if(!empty($item) && !in_array($item, $scripts)) $scripts[]=$item;
+                    } elseif(preg_match('#\.css$#si', $item)) {
+                        if(!empty($item) && !in_array($item, $stylesheets)) $stylesheets[]=$item;
+                    }
+                }
+            }
+    
+    
+            $aPackageLoadList[$packageName]['scripts']=$scripts;
+            $aPackageLoadList[$packageName]['stylesheets']=$stylesheets;
+            
+            foreach (array_reverse($scripts) as $item) {
+                ($this->inlineScript)()->prependFile(
+                    "ruga/vendorasset/{$packageName}/{$item}"
+                );
+            }
+            foreach (array_reverse($stylesheets) as $item) {
+                ($this->headLink)()->prependStylesheet(
+                    "ruga/vendorasset/{$packageName}/{$item}"
+                );
             }
         }
     
     
-        return '<!-- ' . var_export($aLoadedAssets, true) . ' -->';
+//        echo PHP_EOL . '<!--' . PHP_EOL;
+//        echo print_r($aPackageLoadList, true);
+//        echo PHP_EOL . '-->' . PHP_EOL;
+    
+        
+        return '<!-- ' . print_r($aPackageLoadList, true) . ' -->';
     }
     
 }
