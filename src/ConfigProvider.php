@@ -30,6 +30,25 @@ class ConfigProvider
                     \Ruga\Asset\Helper\HeadLinkAssets::class => \Ruga\Asset\Helper\HeadLinkAssetsFactory::class,
                 ],
             ],
+            'ruga' => [
+                'asset' => [
+                    'rugalib/asset-jquery-datatables' => [
+                        'scripts' => ['datatables.min.js'],
+                        'stylesheets' => ['datatables.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^5.1']
+                    ],
+                    'rugalib/asset-bootstrap' => [
+                        'scripts' => ['js/bootstrap.min.js'],
+                        'stylesheets' => ['css/bootstrap.min.css'],
+                        'require' => []
+                    ],
+                    'rugalib/asset-jqueryui' => [
+                        'scripts' => ['jquery-ui.min.js'],
+                        'stylesheets' => ['jquery-ui.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5']
+                    ],
+                ],
+            ],
         ];
     }
 }
