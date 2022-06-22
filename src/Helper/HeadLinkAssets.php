@@ -47,7 +47,8 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
     {
         $minFile=str_replace(['.js', '.css', '.map'], ['.min.js', '.min.css', '.min.map'], $file);
         if(file_exists("{$installPath}/{$minFile}")) return $minFile;
-        return $file;
+        if(file_exists("{$installPath}/{$file}")) return $file;
+        return '';
     }
     
     
@@ -81,6 +82,16 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
             
             if(array_key_exists($packageName, $this->config)) {
                 $config = $this->config[$packageName];
+                
+                foreach(($config['require'] ?? []) as $name => $version) {
+                    if(array_key_exists($name, $aPackageList)) {
+                        $packageConf['require'][]=$name;
+                        if(!array_key_exists($name, $aPackageLoadList)) {
+                            $aPackageLoadList[$name] = [];
+                        }
+                    }
+                }
+    
                 $packageConf['ruga-asset'] = $config;
             }
             
