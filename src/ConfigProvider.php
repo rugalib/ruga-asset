@@ -47,6 +47,66 @@ class ConfigProvider
                         'stylesheets' => ['jquery-ui.min.css'],
                         'require' => ['rugalib/asset-jquery' => '^3.5']
                     ],
+                    'rugalib/asset-fontawesome-free' => [
+                        'scripts' => [],
+                        'stylesheets' => ['css/all.min.css'],
+                    ],
+                    'rugalib/asset-momentjs' => [
+                        'scripts' => ['moment.js'],
+                        'stylesheets' => [],
+                        'require' => [],
+                    ],
+                    'rugalib/asset-tempusdominus-bs4' => [
+                        'scripts' => ['build/js/tempusdominus-bootstrap-4.min.js'],
+                        'stylesheets' => ['build/css/tempusdominus-bootstrap-4.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^4.6', 'rugalib/asset-momentjs' => '^2.29', 'rugalib/asset-popperjs' => '^1.16']
+                    ],
+                    'rugalib/asset-icheck-bootstrap' => [
+                        'scripts' => [],
+                        'stylesheets' => ['icheck-bootstrap.min.css'],
+                        'require' => ['rugalib/asset-bootstrap' => '^4.6'],
+                    ],
+                    'rugalib/asset-jqvmap' => [
+                        'scripts' => ['dist/jquery.vmap.min.js'],
+                        'stylesheets' => ['dist/jqvmap.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+                    'rugalib/asset-overlayscrollbars' => [
+                        'scripts' => ['js/jquery.overlayScrollbars.min.js'],
+                        'stylesheets' => ['css/OverlayScrollbars.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+                    'rugalib/asset-daterangepicker' => [
+                        'scripts' => ['daterangepicker.js'],
+                        'stylesheets' => ['daterangepicker.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+                    'rugalib/asset-summernote' => [
+                        'scripts' => ['dist/summernote-bs4.min.js'],
+                        'stylesheets' => ['dist/summernote-bs4.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^4.6'],
+                    ],
+                    'rugalib/asset-chartjs' => [
+                        'scripts' => ['dist/Chart.min.js'],
+                        'stylesheets' => [''],
+                        'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^4.6'],
+                    ],
+                    'rugalib/asset-jquery-knob' => [
+                        'scripts' => ['dist/jquery.knob.min.js'],
+                        'stylesheets' => [''],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+                    'rugalib/asset-jquery-sparkline' => [
+                        'scripts' => ['jquery.sparkline.min.js'],
+                        'stylesheets' => [''],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+                    'rugalib/asset-popperjs' => [
+                        'scripts' => ['dist/umd/popper.min.js'],
+                        'stylesheets' => [''],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+
                 ],
             ],
         ];
