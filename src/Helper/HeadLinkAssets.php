@@ -66,7 +66,9 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
         // Add the rugalib assets
         $assets = array_reverse($this->config);
         foreach ($assets as $assetname => $asset) {
-            $aPackageList[$assetname] = [];
+            if(\Composer\InstalledVersions::isInstalled($assetname)) {
+                $aPackageList[$assetname] = [];
+            }
         }
         
         // Add all the composer packages
@@ -76,7 +78,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
         
         $aPackageLoadList=[];
         foreach ($aPackageList as $packageName => $packageConf) {
-            if(!preg_match('#(rugalib/ruga-asset-|rugalib/asset-|components/|npm-asset/|bower-asset/)#s', $packageName)) continue;
+            if(!preg_match('#(rugalib/ruga-asset-|rugalib/ruga-layout-|rugalib/asset-|components/|npm-asset/|bower-asset/)#s', $packageName)) continue;
             $installPath = \Composer\InstalledVersions::getInstallPath($packageName);
             $packageConf=['installPath' => $installPath];
             
@@ -177,7 +179,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 $stylesheets=$packageConf['ruga-asset']['stylesheets'];
             }
             
-            if(array_key_exists('composer.json', $packageConf)) {
+            elseif(array_key_exists('composer.json', $packageConf)) {
                 foreach ((($packageConf['composer.json']['extra'] ?? [])['component'] ?? [])['scripts'] ?? [] as $item ) {
                     $item=$this->checkForMin($item, $packageConf['installPath']);
                     if(!empty($item) && !in_array($item, $scripts)) $scripts[]=$item;
@@ -188,7 +190,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 }
             }
     
-            if(array_key_exists('component.json', $packageConf)) {
+            elseif(array_key_exists('component.json', $packageConf)) {
                 $main=(array)$packageConf['component.json']['main'] ?? [];
                 foreach ($main as $item) {
                     $item=$this->checkForMin($item, $packageConf['installPath']);
@@ -200,7 +202,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 }
             }
     
-            if(array_key_exists('package.json', $packageConf)) {
+            elseif(array_key_exists('package.json', $packageConf)) {
                 $item=$packageConf['package.json']['main'] ?? '';
                 $item=$this->checkForMin($item, $packageConf['installPath']);
                 if(!empty($item) && !in_array($item, $scripts)) $scripts[]=$item;
@@ -210,7 +212,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 if(!empty($item) && !in_array($item, $stylesheets)) $stylesheets[]=$item;
             }
     
-            if(array_key_exists('bower.json', $packageConf)) {
+            elseif(array_key_exists('bower.json', $packageConf)) {
                 $main=(array)$packageConf['bower.json']['main'] ?? [];
                 foreach ($main as $item) {
                     $item=$this->checkForMin($item, $packageConf['installPath']);
