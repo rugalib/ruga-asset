@@ -32,20 +32,25 @@ class ConfigProvider
             ],
             'ruga' => [
                 'asset' => [
-                    'rugalib/asset-jquery-datatables' => [
-                        'scripts' => ['datatables.min.js'],
-                        'stylesheets' => ['datatables.min.css'],
-                        'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^5.1']
-                    ],
-                    'rugalib/asset-bootstrap' => [
-                        'scripts' => ['js/bootstrap.min.js'],
-                        'stylesheets' => ['css/bootstrap.min.css'],
-                        'require' => []
-                    ],
                     'rugalib/asset-jqueryui' => [
                         'scripts' => ['jquery-ui.min.js'],
                         'stylesheets' => ['jquery-ui.min.css'],
                         'require' => ['rugalib/asset-jquery' => '^3.5']
+                    ],
+                    'rugalib/asset-popperjs' => [
+                        'scripts' => ['dist/umd/popper.min.js'],
+                        'stylesheets' => [''],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
+                    'rugalib/asset-bootstrap' => [
+                        'scripts' => ['js/bootstrap.min.js'],
+                        'stylesheets' => ['css/bootstrap.min.css'],
+                        'require' => ['rugalib/asset-popperjs' => '^1.16']
+                    ],
+                    'rugalib/asset-jquery-datatables' => [
+                        'scripts' => ['datatables.min.js'],
+                        'stylesheets' => ['datatables.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^5.1']
                     ],
                     'rugalib/asset-fontawesome-free' => [
                         'scripts' => [],
@@ -101,12 +106,11 @@ class ConfigProvider
                         'stylesheets' => [''],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
-                    'rugalib/asset-popperjs' => [
-                        'scripts' => ['dist/umd/popper.min.js'],
-                        'stylesheets' => [''],
+                    'rugalib/asset-select2' => [
+                        'scripts' => ['dist/js/select2.full.min.js'],
+                        'stylesheets' => ['dist/css/select2.min.css'],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
-
                 ],
             ],
         ];
