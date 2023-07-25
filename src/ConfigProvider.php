@@ -111,6 +111,11 @@ class ConfigProvider
                         'stylesheets' => ['dist/css/select2.min.css'],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
+                    'rugalib/asset-alertifyjs' => [
+                        'scripts' => ['build/alertify.min.js'],
+                        'stylesheets' => ['build/css/alertify.min.css', 'build/css/themes/default.min.css', 'build/css/themes/bootstrap.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
                 ],
             ],
         ];
