@@ -5,7 +5,7 @@
   "homepage": "https://github.com/rugalib",
   "type": "library",
   "require": {
-    "php": "^7.4",
+    "php": "^7.4|^8.0|^8.1|^8.2",
     "composer-runtime-api": "^2.1",
     "psr/container": "^1.1",
     "laminas/laminas-view": "^2.20",
