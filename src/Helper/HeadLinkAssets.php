@@ -11,15 +11,14 @@ use Laminas\View\Helper\InlineScript;
 
 class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
 {
-    /** @var array */
-    private $config;
+    private array $config;
     
-    /** @var InlineScript */
-    private $inlineScript;
+    private InlineScript $inlineScript;
     
-    /** @var HeadLink */
-    private $headLink;
+    private HeadLink $headLink;
     
+    private array $aPackageLoadList= [];
+    private array $aPackageList= [];
     
     
     /**
@@ -51,6 +50,17 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
         return '';
     }
     
+    private function addToLoadList($packageName, $packageConf)
+    {
+        foreach(($packageConf['require'] ?? []) as $requiredPackageName) {
+            $this->addToLoadList($requiredPackageName, $this->aPackageList[$requiredPackageName]??[]);
+        }
+        
+        
+        if (!array_key_exists($packageName, $this->aPackageLoadList)) {
+            $this->aPackageLoadList[$packageName] = $packageConf;
+        }
+    }
     
     
     /**
@@ -73,12 +83,13 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
         
         // Add all the composer packages
         foreach (\Composer\InstalledVersions::getInstalledPackages() as $assetname) {
-            $aPackageList[$assetname] = [];
+            if(preg_match('#(rugalib/ruga-asset-|rugalib/ruga-layout-|rugalib/asset-|components/|npm-asset/|bower-asset/)#s', $assetname)) {
+                $aPackageList[$assetname] = [];
+            }
         }
-        
-        $aPackageLoadList=[];
+    
         foreach ($aPackageList as $packageName => $packageConf) {
-            if(!preg_match('#(rugalib/ruga-asset-|rugalib/ruga-layout-|rugalib/asset-|components/|npm-asset/|bower-asset/)#s', $packageName)) continue;
+//            if(!preg_match('#(rugalib/ruga-asset-|rugalib/ruga-layout-|rugalib/asset-|components/|npm-asset/|bower-asset/)#s', $packageName)) continue;
             $installPath = \Composer\InstalledVersions::getInstallPath($packageName);
             $packageConf=['installPath' => $installPath];
             
@@ -88,9 +99,6 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 foreach(($config['require'] ?? []) as $name => $version) {
                     if(array_key_exists($name, $aPackageList)) {
                         $packageConf['require'][]=$name;
-                        if(!array_key_exists($name, $aPackageLoadList)) {
-                            $aPackageLoadList[$name] = [];
-                        }
                     }
                 }
     
@@ -107,9 +115,6 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 foreach(($composerJson['require'] ?? []) as $name => $version) {
                     if(array_key_exists($name, $aPackageList)) {
                         $packageConf['require'][]=$name;
-                        if(!array_key_exists($name, $aPackageLoadList)) {
-                            $aPackageLoadList[$name] = [];
-                        }
                     }
                 }
                 
@@ -126,9 +131,6 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
                 foreach(($componentJson['dependencies'] ?? []) as $name => $version) {
                     if(array_key_exists($name, $aPackageList)) {
                         $packageConf['require'][]=$name;
-                        if(!array_key_exists($name, $aPackageLoadList)) {
-                            $aPackageLoadList[$name] = [];
-                        }
                     }
                 }
     
@@ -154,23 +156,21 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
     
                 $packageConf['bower.json'] = $bowerJson;
             }
-    
-    
-//            if(!in_array($packageName, $aPackageLoadList) && !empty($packageConf)) {
-                $aPackageLoadList[$packageName] = $packageConf;
-//            }
-    
-            $aPackageList[$packageName] = $packageConf;
+            
+            $this->aPackageList[$packageName] = $packageConf;
         }
         
-    
+        
+        
+        
+        foreach ($this->aPackageList as $packageName => $packageConf) {
+            $this->addToLoadList($packageName, $packageConf);
+        }
         
         
         
         
-        
-        
-        foreach (array_reverse($aPackageLoadList) as $packageName => $packageConf) {
+        foreach (array_reverse($this->aPackageLoadList) as $packageName => $packageConf) {
             $scripts=[];
             $stylesheets=[];
             
@@ -225,8 +225,8 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
             }
     
     
-            $aPackageLoadList[$packageName]['scripts']=$scripts;
-            $aPackageLoadList[$packageName]['stylesheets']=$stylesheets;
+            $this->aPackageLoadList[$packageName]['scripts']=$scripts;
+            $this->aPackageLoadList[$packageName]['stylesheets']=$stylesheets;
             
             foreach (array_reverse($scripts) as $item) {
                 ($this->inlineScript)()->prependFile(
@@ -240,13 +240,7 @@ class HeadLinkAssets extends \Laminas\View\Helper\AbstractHelper
             }
         }
     
-    
-//        echo PHP_EOL . '<!--' . PHP_EOL;
-//        echo print_r($aPackageLoadList, true);
-//        echo PHP_EOL . '-->' . PHP_EOL;
-    
-        
-        return '<!-- ' . print_r($aPackageLoadList, true) . ' -->';
+        return '<!-- ' . print_r($this->aPackageLoadList, true) . ' -->';
     }
     
 }
