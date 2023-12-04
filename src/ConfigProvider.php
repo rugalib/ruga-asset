@@ -120,6 +120,11 @@ class ConfigProvider
                         'stylesheets' => ['build/css/alertify.min.css', 'build/css/themes/default.min.css', 'build/css/themes/bootstrap.min.css'],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
+                    'rugalib/asset-filepond' => [
+                        'scripts' => ['dist/filepond.min.js', 'locale/de-de.js'],
+                        'stylesheets' => ['dist/filepond.min.css'],
+                        'require' => ['rugalib/asset-jquery' => '^3.5'],
+                    ],
                 ],
             ],
         ];
