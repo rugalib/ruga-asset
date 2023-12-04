@@ -43,7 +43,7 @@ class ConfigProvider
                     ],
                     'rugalib/asset-popperjs' => [
                         'scripts' => ['dist/umd/popper.min.js'],
-                        'stylesheets' => [''],
+                        'stylesheets' => [],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
                     'rugalib/asset-bootstrap' => [
@@ -97,17 +97,17 @@ class ConfigProvider
                     ],
                     'rugalib/asset-chartjs' => [
                         'scripts' => ['dist/Chart.min.js'],
-                        'stylesheets' => [''],
+                        'stylesheets' => [],
                         'require' => ['rugalib/asset-jquery' => '^3.5', 'rugalib/asset-bootstrap' => '^4.6'],
                     ],
                     'rugalib/asset-jquery-knob' => [
                         'scripts' => ['dist/jquery.knob.min.js'],
-                        'stylesheets' => [''],
+                        'stylesheets' => [],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
                     'rugalib/asset-jquery-sparkline' => [
                         'scripts' => ['jquery.sparkline.min.js'],
-                        'stylesheets' => [''],
+                        'stylesheets' => [],
                         'require' => ['rugalib/asset-jquery' => '^3.5'],
                     ],
                     'rugalib/asset-select2' => [
